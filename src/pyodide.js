@@ -21,8 +21,6 @@ function Pyodide({
   const [isPyodideLoading, setIsPyodideLoading] = useState(true);
   const [pyodideOutput, setPyodideOutput] = useState(evaluatingMessage); // load pyodide wasm module and initialize it
 
-  console.log("running use effects now...");
-
   useEffect(() => {
     setTimeout(()=>{
       (async function () {
