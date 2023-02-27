@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Helmet } from "react-helmet";
+// import { Helmet } from "react-helmet";
+import AppendHead from 'react-append-head';
 import PropTypes from "prop-types";
 
 /**
@@ -53,30 +54,39 @@ function Pyodide({
 
   return (
     <>
-      <Helmet>
+      <AppendHead debug>
         <script 
+          name="pyodide"
           src={`${indexURL}pyodide.js`}
+          order="0"
         />
         <script
-          type="text/javascript"
+          name="bokeh"
           src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.js"
+          order="1"
         />
         <script
-          type="text/javascript"
+          name="bokeh-widgets"
           src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.3.min.js"
+          order="2"
         />
         <script
-          type="text/javascript"
+          name="bokeh-tables"
           src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.3.min.js"
+          order="3"
         />
         <script
-          type="text/javascript"
+          name="panel"
           src="https://cdn.jsdelivr.net/npm/@holoviz/panel@0.14.0/dist/panel.min.js"
+          order="4"
         />
-      </Helmet>
-      <div>
-        Pyodide Output: {isPyodideLoading ? loadingMessage : pyodideOutput}
-      </div>
+      </AppendHead>
+      <body>
+        <div>
+          Pyodide Output: {isPyodideLoading ? loadingMessage : pyodideOutput}
+          <div id="simple_app">replace this</div>
+        </div>
+      </body>
     </>
   );
 }
