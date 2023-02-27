@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-// import { Helmet } from "react-helmet";
-import AppendHead from 'react-append-head';
 import PropTypes from "prop-types";
+import {useScript} from 'usehooks-ts'
 
 /**
  * Pyodide component
@@ -17,19 +16,39 @@ function Pyodide({
   loadingMessage = "loading…",
   evaluatingMessage = "evaluating…",
 }) {
+  const pyodideStatus = useScript(`https://cdn.jsdelivr.net/pyodide/v0.21.2/full/pyodide.js`, {
+    removeOnUnmount: false,
+  })
+  const bokehStatus = useScript(`https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.js`, {
+      removeOnUnmount: false, shouldPreventLoad: pyodideStatus !== "ready"
+  })
+  const bokehWidgetsStatus = useScript(`https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.3.min.js`, {
+    removeOnUnmount: false, shouldPreventLoad: bokehStatus !== "ready"
+  })
+  const bokehTablesStatus = useScript(`https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.3.min.js`, {
+    removeOnUnmount: false, shouldPreventLoad: bokehWidgetsStatus !== "ready"
+  })
+  const panelStatus = useScript(`https://cdn.jsdelivr.net/npm/@holoviz/panel@0.14.0/dist/panel.min.js`, {
+    removeOnUnmount: false, shouldPreventLoad: bokehTablesStatus !== "ready"
+  })
+
+  console.log(pyodideStatus, bokehStatus, bokehWidgetsStatus, bokehTablesStatus, panelStatus);
+
   const indexURL = "https://cdn.jsdelivr.net/pyodide/v0.21.2/full/";
   const pyodide = useRef(null);
   const [isPyodideLoading, setIsPyodideLoading] = useState(true);
   const [pyodideOutput, setPyodideOutput] = useState(evaluatingMessage); // load pyodide wasm module and initialize it
 
   useEffect(() => {
-    setTimeout(()=>{
-      (async function () {
-        pyodide.current = await globalThis.loadPyodide({ indexURL });
-        setIsPyodideLoading(false);
-      })();
-    }, 1000)
-  }, [pyodide]); // evaluate python code with pyodide and set output
+    if (panelStatus === "ready") {
+      setTimeout(()=>{
+        (async function () {
+          pyodide.current = await globalThis.loadPyodide({ indexURL });
+          setIsPyodideLoading(false);
+        })();
+      }, 1000)
+    }
+  }, [pyodide, panelStatus]); // evaluate python code with pyodide and set output
 
   useEffect(() => {
     if (!isPyodideLoading) {
@@ -50,43 +69,15 @@ function Pyodide({
     }
   }, [isPyodideLoading, pyodide, pythonCode]);
 
-  console.log("output: ", pyodideOutput);
+  if (panelStatus !== "ready") {
+    return <div></div>
+  }
 
   return (
     <>
-      <AppendHead debug>
-        <script 
-          name="pyodide"
-          src={`${indexURL}pyodide.js`}
-          order="0"
-        />
-        <script
-          name="bokeh"
-          src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.js"
-          order="1"
-        />
-        <script
-          name="bokeh-widgets"
-          src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.3.min.js"
-          order="2"
-        />
-        <script
-          name="bokeh-tables"
-          src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.3.min.js"
-          order="3"
-        />
-        <script
-          name="panel"
-          src="https://cdn.jsdelivr.net/npm/@holoviz/panel@0.14.0/dist/panel.min.js"
-          order="4"
-        />
-      </AppendHead>
-      <body>
-        <div>
-          Pyodide Output: {isPyodideLoading ? loadingMessage : pyodideOutput}
-          <div id="simple_app">replace this</div>
-        </div>
-      </body>
+      <div>
+        {isPyodideLoading ? loadingMessage : pyodideOutput}
+      </div>
     </>
   );
 }
@@ -98,3 +89,5 @@ Pyodide.propTypes = {
 };
 
 export default Pyodide;
+
+
