@@ -32,7 +32,6 @@ function Pyodide({
     removeOnUnmount: false, shouldPreventLoad: bokehTablesStatus !== "ready"
   })
 
-  console.log(pyodideStatus, bokehStatus, bokehWidgetsStatus, bokehTablesStatus, panelStatus);
 
   const indexURL = "https://cdn.jsdelivr.net/pyodide/v0.21.2/full/";
   const pyodide = useRef(null);
@@ -57,7 +56,12 @@ function Pyodide({
           await pyodide.loadPackage("micropip");
           const micropip = pyodide.pyimport("micropip");
           await micropip.install("panel");
-          return await pyodide.runPython(pythonCode);
+          const result = await pyodide.runPython(pythonCode);
+          if (typeof result === "function") {
+            return await result();
+          } else {
+            return result;
+          }
         } catch (error) {
           console.error(error);
           return "Error evaluating Python code. See console for details.";
