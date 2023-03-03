@@ -23,9 +23,6 @@ async def main():
   async def get_data():
     res = await fetch('/users', 
       method = 'GET',
-      # headers = {
-      #   'Cookie': '_vsid=e42b01e4-6e0f-4bc6-8cae-c7202c005ca1',
-      # },
     )
     print("response", res)
     data = res
